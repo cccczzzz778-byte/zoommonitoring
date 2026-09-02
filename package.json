@@ -1,11 +1,11 @@
 {
   "name": "zoom-monitor-full",
-  "version": "2.1.0",
+  "version": "3.0.0",
   "private": true,
-  "description": "Zero-dependency Zoom participant monitoring dashboard with Telegram alerts and Excel reports",
+  "description": "Zoom participant monitoring dashboard with Telegram Excel reports",
   "scripts": {
-    "start": "node server.js",
-    "check": "node --check server.js && node --check main.js"
+    "start": "node server-v3.js",
+    "check": "node --check server-v3.js && node --check main.js"
   },
   "engines": {
     "node": ">=20"
