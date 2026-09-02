@@ -79,6 +79,16 @@ async function route(req,res){
   if(url.pathname==='/main.js'){
     try{return send(res,200,await fs.readFile(path.join(__dirname,'main-v4.js')),{'content-type':'text/javascript; charset=utf-8','cache-control':'no-store'})}catch{return proxy(req,res)}
   }
+  const publicPages={
+    '/privacy':'privacy.html','/privacy.html':'privacy.html',
+    '/terms':'terms.html','/terms.html':'terms.html',
+    '/support':'support.html','/support.html':'support.html',
+    '/docs':'docs.html','/docs.html':'docs.html'
+  };
+  if(publicPages[url.pathname]){
+    try{return send(res,200,await fs.readFile(path.join(__dirname,publicPages[url.pathname])),{'content-type':'text/html; charset=utf-8','cache-control':'no-store'})}
+    catch{return send(res,404,'Not found',{'content-type':'text/plain; charset=utf-8'})}
+  }
   if(url.pathname==='/api/oauth/start'&&req.method==='POST'){
     if(!monitorAuth(req))return json(res,401,{error:'Monitor kaliti noto‘g‘ri'});
     if(!clientId()||!clientSecret())return json(res,500,{error:'Zoom OAuth credentiallari yo‘q'});
@@ -123,4 +133,4 @@ async function route(req,res){
   return proxy(req,res);
 }
 
-http.createServer((req,res)=>route(req,res).catch(e=>json(res,500,{error:e.message}))).listen(PORT,'0.0.0.0',()=>console.log(`Zoom Monitor v4.2 gateway: ${PORT} -> core ${CORE_PORT}`));
+http.createServer((req,res)=>route(req,res).catch(e=>json(res,500,{error:e.message}))).listen(PORT,'0.0.0.0',()=>console.log(`Zoom Monitor v4.3 gateway: ${PORT} -> core ${CORE_PORT}`));
