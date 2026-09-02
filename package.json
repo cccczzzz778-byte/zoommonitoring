@@ -1,11 +1,11 @@
 {
   "name": "zoom-monitor-full",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "private": true,
-  "description": "Zoom participant monitoring dashboard with Telegram Excel reports",
+  "description": "Zoom participant monitoring dashboard with OAuth OBF and Telegram Excel reports",
   "scripts": {
-    "start": "node server-v3.js",
-    "check": "node --check server-v3.js && node --check main.js"
+    "start": "node server-v4.js",
+    "check": "node --check server-v4.js && node --check server-v3.js && node --check main-v4.js"
   },
   "engines": {
     "node": ">=20"
