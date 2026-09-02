@@ -16,7 +16,14 @@ const core=spawn(process.execPath,[path.join(__dirname,'server-v3.js')],{
 });
 core.on('exit',(code)=>{console.error('Core server stopped:',code);process.exit(code??1)});
 
-const send=(res,code,body,headers={})=>{const b=Buffer.isBuffer(body)?body:Buffer.from(String(body));res.writeHead(code,{'content-length':b.length,...headers});res.end(b)};
+const securityHeaders={
+  'strict-transport-security':'max-age=31536000; includeSubDomains',
+  'x-content-type-options':'nosniff',
+  'referrer-policy':'strict-origin-when-cross-origin',
+  'content-security-policy':"default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://source.zoom.us https://*.zoom.us https://*.zoom.com; style-src 'self' 'unsafe-inline' https://source.zoom.us; img-src 'self' data: blob: https:; font-src 'self' data: https://source.zoom.us; connect-src 'self' https://*.zoom.us https://*.zoom.com wss://*.zoom.us wss://*.zoom.com; media-src 'self' blob: https:; worker-src 'self' blob:; child-src 'self' blob: https://*.zoom.us https://*.zoom.com; frame-src https://*.zoom.us https://*.zoom.com; object-src 'none'; base-uri 'self'; form-action 'self' https://zoom.us https://*.zoom.us"
+};
+
+const send=(res,code,body,headers={})=>{const b=Buffer.isBuffer(body)?body:Buffer.from(String(body));res.writeHead(code,{...securityHeaders,'content-length':b.length,...headers});res.end(b)};
 const json=(res,code,obj,headers={})=>send(res,code,JSON.stringify(obj),{'content-type':'application/json; charset=utf-8',...headers});
 const readBody=async req=>{const a=[];for await(const c of req)a.push(c);if(!a.length)return{};return JSON.parse(Buffer.concat(a).toString('utf8'))};
 const cookieMap=req=>Object.fromEntries(String(req.headers.cookie||'').split(';').map(x=>x.trim()).filter(Boolean).map(x=>{const i=x.indexOf('=');return i<0?[x,'']:[x.slice(0,i),decodeURIComponent(x.slice(i+1))]}));
@@ -61,7 +68,7 @@ async function getObf(session,meeting){
 
 function proxy(req,res){
   const opts={hostname:'127.0.0.1',port:CORE_PORT,path:req.url,method:req.method,headers:{...req.headers,host:`127.0.0.1:${CORE_PORT}`}};
-  const p=http.request(opts,r=>{res.writeHead(r.statusCode||502,r.headers);r.pipe(res)});p.on('error',e=>json(res,502,{error:'Core server unavailable',detail:e.message}));req.pipe(p);
+  const p=http.request(opts,r=>{res.writeHead(r.statusCode||502,{...r.headers,...securityHeaders});r.pipe(res)});p.on('error',e=>json(res,502,{error:'Core server unavailable',detail:e.message}));req.pipe(p);
 }
 
 async function route(req,res){
@@ -116,4 +123,4 @@ async function route(req,res){
   return proxy(req,res);
 }
 
-http.createServer((req,res)=>route(req,res).catch(e=>json(res,500,{error:e.message}))).listen(PORT,'0.0.0.0',()=>console.log(`Zoom Monitor v4.1 gateway: ${PORT} -> core ${CORE_PORT}`));
+http.createServer((req,res)=>route(req,res).catch(e=>json(res,500,{error:e.message}))).listen(PORT,'0.0.0.0',()=>console.log(`Zoom Monitor v4.2 gateway: ${PORT} -> core ${CORE_PORT}`));
